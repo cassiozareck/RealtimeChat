@@ -1,5 +1,5 @@
-module github.com/cassiozareck/pap
+module github.com/cassiozareck/realchat
 
 go 1.20
 
-require github.com/veandco/go-sdl2 v0.4.35
+require github.com/lib/pq v1.10.9
