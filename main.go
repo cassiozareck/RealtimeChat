@@ -3,12 +3,15 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"log"
-
 	_ "github.com/lib/pq"
+	"log"
 )
 
 func main() {
+	connectToDB()
+}
+
+func connectToDB() {
 
 	// Database connection parameters
 	dbHost := "postgres" // aqui tem que ser o nome da task
@@ -39,4 +42,5 @@ func main() {
 	}
 
 	log.Println("Connected")
+
 }
