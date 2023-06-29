@@ -7,33 +7,48 @@ import (
 )
 
 type Chat struct {
-	chatDB   db.ChatDB
-	userID   uint32
-	senderID uint32
+	ID     uint32
+	chatDB db.ChatDB
 }
 
-func GetChat(chatDB db.ChatDB, userID, destinID uint32) *Chat {
-
-	c := Chat{chatDB, userID, destinID}
-	return &c
-}
-
-func (c *Chat) SendMessage(msg string) error {
-	if msg == "" {
-		return fmt.Errorf("message cannot be empty")
+// GetChat returns a Chat object with the given ID.
+func GetChat(chatDB db.ChatDB, ID uint32) (*Chat, error) {
+	c := Chat{ID, chatDB}
+	exist, err := chatDB.ChatExists(ID)
+	if err != nil {
+		return nil, err
 	}
-	chatExist, err := c.chatDB.ChatExists(c.userID)
+	if exist {
+		return &c, nil
+	}
+	return nil, fmt.Errorf("chat with ID %d does not exist", ID)
+}
 
+// NewChat creates a new chat with unique ID and returns a Chat object.
+func NewChat(chatDB db.ChatDB) (*Chat, error) {
+	c := Chat{0, chatDB}
+
+	id, err := chatDB.CreateChat()
+	if err != nil {
+		return nil, err
+	}
+	c.ID = id
+
+	return &c, nil
+}
+
+func (c *Chat) SendMessage(SenderID uint32, msg string) error {
+	err := c.checkSenderID(SenderID)
+	if err != nil {
+		return err
+	}
+	err = c.checkMessage(msg)
 	if err != nil {
 		return err
 	}
 
-	if !chatExist {
-		return fmt.Errorf("chat does not exist")
-	}
-
-	message := shared.NewMessage(c.userID, msg)
-	err = c.chatDB.Store(message)
+	message := shared.NewMessage(SenderID, msg)
+	err = c.chatDB.Store(c.ID, message)
 
 	if err != nil {
 		return err
@@ -41,16 +56,8 @@ func (c *Chat) SendMessage(msg string) error {
 	return nil
 }
 
-func (c *Chat) CreateChat() (uint32, error) {
-	id, err := c.chatDB.CreateChat()
-	if err != nil {
-		return 0, err
-	}
-	return id, nil
-}
-
 func (c *Chat) GetMessages() ([]shared.Message, error) {
-	msgs, err := c.chatDB.GetMessages()
+	msgs, err := c.chatDB.GetMessages(c.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -58,9 +65,30 @@ func (c *Chat) GetMessages() ([]shared.Message, error) {
 }
 
 func (c *Chat) LastMessage() (*shared.Message, error) {
-	msgs, err := c.chatDB.GetMessages()
+	msgs, err := c.chatDB.GetMessages(c.ID)
 	if err != nil {
 		return nil, err
 	}
 	return &msgs[len(msgs)-1], nil
+}
+
+func (c *Chat) GetID() uint32 {
+	return c.ID
+}
+
+func (c *Chat) checkSenderID(SenderID uint32) error {
+	if SenderID <= 0 {
+		return fmt.Errorf("invalid sender ID: %d", SenderID)
+	}
+	return nil
+}
+
+func (c *Chat) checkMessage(msg string) error {
+	if len(msg) == 0 {
+		return fmt.Errorf("invalid message: %s", msg)
+	}
+	if len(msg) > shared.MAX_MESSAGE_SIZE {
+		return fmt.Errorf("message too long: %s", msg)
+	}
+	return nil
 }

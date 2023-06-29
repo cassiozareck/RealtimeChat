@@ -10,17 +10,16 @@ import (
 type ChatDB interface {
 	CreateChat() (uint32, error)
 	ChatExists(chatID uint32) (bool, error)
-	Store(msg shared.Message) error
-	GetMessages() ([]shared.Message, error)
+	Store(chatID uint32, msg shared.Message) error
+	GetMessages(chatID uint32) ([]shared.Message, error)
 }
 
 type ChatDBImp struct {
-	id  uint32
 	sql *sql.DB
 }
 
-func NewChatDBImp(id uint32, sql *sql.DB) *ChatDBImp {
-	return &ChatDBImp{id, sql}
+func NewChatDBImp(sql *sql.DB) *ChatDBImp {
+	return &ChatDBImp{sql}
 }
 
 // CreateChat creates a new chat and returns its ID.
@@ -44,9 +43,9 @@ func (c *ChatDBImp) ChatExists(chatID uint32) (bool, error) {
 }
 
 // Store will store a message in the database
-func (c *ChatDBImp) Store(msg shared.Message) error {
+func (c *ChatDBImp) Store(chatID uint32, msg shared.Message) error {
 
-	_, err := c.sql.Exec("INSERT INTO message (chat_id, sender_id, message, timestamp) VALUES (?, ?, ?, ?)", c.id, msg.UserID, msg.Text, msg.Hour)
+	_, err := c.sql.Exec("INSERT INTO message (chat_id, sender_id, message, timestamp) VALUES (?, ?, ?, ?)", chatID, msg.UserID, msg.Text, msg.Hour)
 	if err != nil {
 		return err
 	}
@@ -54,8 +53,8 @@ func (c *ChatDBImp) Store(msg shared.Message) error {
 }
 
 // GetMessages will get all messages from a chat
-func (c *ChatDBImp) GetMessages() ([]shared.Message, error) {
-	rows, err := c.sql.Query("SELECT id, chat_id, sender_id, message.message, timestamp FROM message WHERE chat_id = ?", c.id)
+func (c *ChatDBImp) GetMessages(chatID uint32) ([]shared.Message, error) {
+	rows, err := c.sql.Query("SELECT id, chat_id, sender_id, message.message, timestamp FROM message WHERE chat_id = ?", chatID)
 	if err != nil {
 		return nil, err
 	}
