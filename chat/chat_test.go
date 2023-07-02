@@ -134,7 +134,7 @@ func TestChat_GetMessages(t *testing.T) {
 
 			// Output
 			messages: nil,
-			err:      fmt.Errorf("chat with ID %v does not exist", chatID)},
+			err:      fmt.Errorf("chat with id %v does not exist", chatID)},
 	}
 
 	for _, tc := range testCases {
@@ -152,7 +152,7 @@ func TestChat_GetMessages(t *testing.T) {
 				}
 			}
 
-			messages, err := c.GetMessages()
+			messages := c.GetMessages()
 			if err != nil {
 				t.Errorf("Could not get messages: %v", err)
 			}
@@ -176,5 +176,70 @@ func TestChat_Exist(t *testing.T) {
 	_, err := GetChat(&chatDB, 123)
 	if err == nil {
 		t.Fatal("Chat should not exist")
+	}
+}
+
+func TestChat_GetPeople(t *testing.T) {
+	personID1 := uint32(1)
+	personID2 := uint32(2)
+
+	testCases := []struct {
+		// Input
+		name   string
+		chatDB ChatDBMock
+		chatID uint32
+		// Output
+		people []shared.Person
+		err    error
+	}{
+		{
+			// Input
+			name:   "Test1",
+			chatID: 0,
+			chatDB: ChatDBMock{
+				exist: true,
+				messages: []shared.Message{
+					shared.NewMessage(personID1, "hello"),
+					shared.NewMessage(personID1, "how are u?"),
+					shared.NewMessage(personID2, "im fine thanks"),
+				},
+				err: nil,
+			},
+
+			// Output
+			err: error(nil),
+			people: []shared.Person{
+				{
+					ID:   personID1,
+					Name: "",
+				},
+				{
+					ID:   personID2,
+					Name: "",
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			c, err := GetChat(&tc.chatDB, tc.chatID)
+
+			if err != nil {
+				t.Errorf("Error while creating new chat: %v", err)
+			}
+
+			people := c.GetPeople()
+			if err != nil {
+				t.Errorf("Could not get people: %v", err)
+			}
+
+			for i, person := range people {
+				if person.ID != tc.people[i].ID {
+					t.Errorf("Person ID not equal: got %v, want %v", person.ID, tc.people[i].ID)
+				}
+			}
+		})
 	}
 }

@@ -3,13 +3,9 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"github.com/cassiozareck/realchat/shared"
 	"log"
 )
-
-type Person struct {
-	ID   uint32
-	Name string
-}
 
 type PeopleDB struct {
 	sql *sql.DB
@@ -25,12 +21,12 @@ func (pdb *PeopleDB) Add(name string) error {
 	return nil
 }
 
-func (pdb *PeopleDB) Get(id uint32) (*Person, error) {
+func (pdb *PeopleDB) Get(id uint32) (*shared.Person, error) {
 	query := fmt.Sprintf("SELECT * FROM person WHERE id = %v", id)
 
 	rows, err := pdb.sql.Query(query)
 	if err != nil {
-		log.Fatal("Error querying ID: ", err, "ID: ", id)
+		log.Fatal("Error querying id: ", err, "id: ", id)
 		return nil, err
 	}
 
@@ -41,7 +37,7 @@ func (pdb *PeopleDB) Get(id uint32) (*Person, error) {
 		}
 	}(rows)
 
-	person := Person{}
+	person := shared.Person{}
 
 	rows.Next()
 	err = rows.Scan(&person.ID, &person.Name)
