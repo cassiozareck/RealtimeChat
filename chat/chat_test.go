@@ -2,6 +2,7 @@ package chat
 
 import (
 	"fmt"
+	"github.com/cassiozareck/realchat/db"
 	"github.com/cassiozareck/realchat/shared"
 	"testing"
 )
@@ -34,50 +35,77 @@ const SenderId = 123
 // TestChat_SendMSG will send a message and test if the
 // last message is giving the appropriate answer
 func TestChat_SendMSG(t *testing.T) {
+	text := "hello"
+	userID := uint32(2)
 
-	chatDB := ChatDBMock{}
-
-	c, err := NewChat(&chatDB)
-	if err != nil {
-		t.Fatal("Error while creating new chat: ", err)
+	var testCases = []struct {
+		// Input
+		name    string
+		message string
+		chatDB  db.ChatDB
+		userID  uint32
+		// Output
+		outMessage shared.Message
+		err        error
+	}{
+		{
+			name:    "Test 1",
+			message: text,
+			chatDB: &ChatDBMock{
+				chatId:   0,
+				exist:    true,
+				messages: []shared.Message{shared.NewMessage(userID, text)},
+				err:      nil,
+			},
+			userID:     userID,
+			outMessage: shared.NewMessage(userID, text),
+			err:        nil,
+		},
 	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			c, err := NewChat(tc.chatDB)
+			if err != nil {
+				t.Fatal("Error while creating new chat: ", err)
+			}
 
-	MSG := "hello"
-	err = c.SendMessage(SenderId, MSG)
-	if err != nil {
-		t.Fatal("Error while sending message: ", err)
-	}
+			err = c.SendMessage(tc.userID, tc.message)
+			if err != nil {
+				t.Fatal("Error while sending message: ", err)
+			}
 
-	lastMessage, err := c.LastMessage()
-	if err != nil {
-		t.Fatal("Error while retrieving last message: ", err)
-	}
+			lastMessage, err := c.LastMessage()
+			if err != nil {
+				t.Fatal("Error while retrieving last message: ", err)
+			}
 
-	if lastMessage.Text != MSG {
-		t.Fatal("Last Message not equals ", MSG)
+			if lastMessage.Text != tc.outMessage.Text {
+				t.Fatal("Last Message not equals ", tc.outMessage.Text)
+			}
+
+		})
 	}
 }
 
 // TestChat_GetMessages will get messages using Chat and compare to see if
 // messages are matching the same from database
 func TestChat_GetMessages(t *testing.T) {
-	chatID := 1
-
+	chatID := uint32(2)
 	testCases := []struct {
 		// Input
 		name   string
 		chatDB ChatDBMock
-
+		chatID uint32
 		// Output
 		messages []shared.Message
 		err      error
 	}{
 		{
 			// Input
-			name: "Test1",
+			name:   "Test1",
+			chatID: chatID,
 			chatDB: ChatDBMock{
-				chatId: 0,
-				exist:  true,
+				exist: true,
 				messages: []shared.Message{
 					shared.NewMessage(321, "hello"),
 					shared.NewMessage(321, "how are u?"),
@@ -96,9 +124,9 @@ func TestChat_GetMessages(t *testing.T) {
 		},
 		{
 			// Input
-			name: "Test2",
+			name:   "Test2",
+			chatID: chatID,
 			chatDB: ChatDBMock{
-				chatId:   0,
 				exist:    false,
 				messages: nil,
 				err:      nil,
@@ -106,19 +134,21 @@ func TestChat_GetMessages(t *testing.T) {
 
 			// Output
 			messages: nil,
-			err:      fmt.Errorf("chat with ID %d does not exist", chatID)},
+			err:      fmt.Errorf("chat with ID %v does not exist", chatID)},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 
-			c, err := GetChat(&tc.chatDB, 123)
+			c, err := GetChat(&tc.chatDB, tc.chatID)
 
-			if err != tc.err {
-				t.Errorf("Error while creating new chat: %v", err)
-			} else {
-				if c == nil {
-					return
+			if err != nil {
+				if err.Error() != tc.err.Error() {
+					t.Errorf("Error while creating new chat: %v", err)
+				} else {
+					if c == nil {
+						return
+					}
 				}
 			}
 
