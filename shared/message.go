@@ -1,23 +1,87 @@
 package shared
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type Message struct {
-	ID     uint32
-	ChatID uint32
-	UserID uint32
-	Text   string
-	Hour   time.Time
+	id        uint32
+	chatID    uint32
+	senderID  uint32
+	text      string
+	timestamp time.Time
 }
 
-func (m Message) LessThan(other Message) bool {
-	return m.Hour.Before(other.Hour)
-}
-
-func NewMessage(userID uint32, text string) Message {
-	return Message{
-		UserID: userID,
-		Text:   text,
-		Hour:   time.Now(),
+func NewMessage(senderID uint32, text string) (*Message, error) {
+	err := checkText(text)
+	if err != nil {
+		return nil, err
 	}
+	err = checkSenderID(senderID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Message{
+		senderID:  senderID,
+		text:      text,
+		timestamp: time.Now(),
+	}, nil
+}
+
+func NewMessageFromDB(id uint32, chatID uint32, senderID uint32, text string, timestamp time.Time) (*Message, error) {
+	return &Message{
+		id:        id,
+		chatID:    chatID,
+		senderID:  senderID,
+		text:      text,
+		timestamp: timestamp,
+	}, nil
+}
+
+func (m *Message) ID() uint32 {
+	return m.id
+}
+
+func (m *Message) ChatID() uint32 {
+	return m.chatID
+}
+
+func (m *Message) SenderID() uint32 {
+	return m.senderID
+}
+
+func (m *Message) Text() string {
+	return m.text
+}
+
+func (m *Message) Timestamp() time.Time {
+	return m.timestamp
+}
+
+func (m *Message) SetText(text string) error {
+	err := checkText(text)
+	if err != nil {
+		return err
+	}
+	m.text = text
+	return nil
+}
+
+func checkText(text string) error {
+	if len(text) == 0 {
+		return fmt.Errorf("invalid message: %s", text)
+	}
+	if len(text) > MAX_MESSAGE_SIZE {
+		return fmt.Errorf("message too long: %s", text)
+	}
+	return nil
+}
+
+func checkSenderID(SenderID uint32) error {
+	if SenderID <= 0 {
+		return fmt.Errorf("invalid sender id: %d", SenderID)
+	}
+	return nil
 }

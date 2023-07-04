@@ -10,7 +10,7 @@ import (
 type ChatDB interface {
 	CreateChat() (uint32, error)
 	ChatExists(chatID uint32) (bool, error)
-	Store(chatID uint32, msg shared.Message) error
+	Store(msg shared.Message) error
 	GetMessages(chatID uint32) ([]shared.Message, error)
 }
 
@@ -43,8 +43,9 @@ func (c *ChatDBImp) ChatExists(chatID uint32) (bool, error) {
 }
 
 // Store will store a message in the database
-func (c *ChatDBImp) Store(chatID uint32, msg shared.Message) error {
-	_, err := c.sql.Exec("INSERT INTO message (sender_id, message, time, chat_id) VALUES (?, ?, ?, ?)", chatID, msg.UserID, msg.Text, msg.Hour)
+func (c *ChatDBImp) Store(msg shared.Message) error {
+	_, err := c.sql.Exec("INSERT INTO message (sender_id, message, time, chat_id) VALUES (?, ?, ?, ?)",
+		msg.ChatID(), msg.SenderID(), msg.Text, msg.Timestamp())
 	if err != nil {
 		return err
 	}
@@ -53,29 +54,52 @@ func (c *ChatDBImp) Store(chatID uint32, msg shared.Message) error {
 
 // GetMessages will get all messages from a chat
 func (c *ChatDBImp) GetMessages(chatID uint32) ([]shared.Message, error) {
-	rows, err := c.sql.Query("SELECT id, sender_id, message.message, time, chat_id FROM message WHERE chat_id = $1", chatID)
-
+	rows, err := c.queryMessages(chatID)
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		if err := rows.Close(); err != nil {
-			log.Printf("Failed to close rows: %v", err)
-		}
-	}()
+	defer c.closeRows(rows)
 
+	return c.scanMessages(rows)
+}
+
+// queryMessages performs the SQL query to get messages for a chat.
+func (c *ChatDBImp) queryMessages(chatID uint32) (*sql.Rows, error) {
+	return c.sql.Query("SELECT id, sender_id, message.message, time, chat_id FROM message WHERE chat_id = $1", chatID)
+}
+
+// closeRows closes the SQL rows and logs any error.
+func (c *ChatDBImp) closeRows(rows *sql.Rows) {
+	if err := rows.Close(); err != nil {
+		log.Printf("Failed to close rows: %v", err)
+	}
+}
+
+// scanMessages scans the SQL rows into Message objects.
+func (c *ChatDBImp) scanMessages(rows *sql.Rows) ([]shared.Message, error) {
 	var messages []shared.Message
 	for rows.Next() {
-		var msg shared.Message
-		var hour string
-		if err := rows.Scan(&msg.ID, &msg.UserID, &msg.Text, &hour, &msg.ChatID); err != nil {
-			return nil, err
-		}
-		msg.Hour, err = time.Parse(time.RFC3339, hour)
+		msg, err := c.scanMessage(rows)
 		if err != nil {
 			return nil, err
 		}
-		messages = append(messages, msg)
+		messages = append(messages, *msg)
 	}
 	return messages, nil
+}
+
+// scanMessage scans a single SQL row into a Message object.
+func (c *ChatDBImp) scanMessage(rows *sql.Rows) (*shared.Message, error) {
+	var id, senderID, chatID uint32
+	var text, timestamp string
+	if err := rows.Scan(&id, &senderID, &text, &timestamp, &chatID); err != nil {
+		return nil, err
+	}
+
+	t, err := time.Parse(time.RFC3339, timestamp)
+	if err != nil {
+		return nil, err
+	}
+
+	return shared.NewMessageFromDB(id, senderID, chatID, text, t)
 }

@@ -22,7 +22,7 @@ func (c *ChatDBMock) ChatExists(chatID uint32) (bool, error) {
 	return c.exist, c.err
 }
 
-func (c *ChatDBMock) Store(chatID uint32, msg shared.Message) error {
+func (c *ChatDBMock) Store(msg shared.Message) error {
 	return c.err
 }
 
@@ -80,8 +80,8 @@ func TestChat_SendMSG(t *testing.T) {
 			if err != nil {
 				t.Fatal("Error while creating new chat: ", err)
 			}
-
-			err = c.SendMessage(tc.userID, tc.message)
+			msg := shared.NewMessage(tc.userID, tc.message)
+			err = c.SendMessage(msg)
 			if err != nil {
 				t.Fatal("Error while sending message: ", err)
 			}
@@ -207,7 +207,7 @@ func TestChat_GetPeople(t *testing.T) {
 		chatID        uint32
 		messageToSend shared.Message
 		// Output
-		people []shared.Person
+		people []uint32
 		err    error
 	}{
 		{
@@ -226,15 +226,9 @@ func TestChat_GetPeople(t *testing.T) {
 
 			// Output
 			err: error(nil),
-			people: []shared.Person{
-				{
-					ID:   personID1,
-					Name: "",
-				},
-				{
-					ID:   personID2,
-					Name: "",
-				},
+			people: []uint32{
+				personID1,
+				personID2,
 			},
 		},
 		{
@@ -254,19 +248,10 @@ func TestChat_GetPeople(t *testing.T) {
 
 			// Output
 			err: error(nil),
-			people: []shared.Person{
-				{
-					ID:   personID1,
-					Name: "",
-				},
-				{
-					ID:   personID2,
-					Name: "",
-				},
-				{
-					ID:   personID3,
-					Name: "",
-				},
+			people: []uint32{
+				personID1,
+				personID2,
+				personID3,
 			},
 		},
 	}
@@ -281,7 +266,7 @@ func TestChat_GetPeople(t *testing.T) {
 			}
 
 			if tc.messageToSend.Text != "" {
-				err := c.SendMessage(tc.messageToSend.UserID, tc.messageToSend.Text)
+				err := c.SendMessage(tc.messageToSend)
 				if err != nil {
 					t.Errorf("Error while sending message: %v", err)
 				}
@@ -292,9 +277,9 @@ func TestChat_GetPeople(t *testing.T) {
 				t.Errorf("Could not get people: %v", err)
 			}
 
-			for i, person := range people {
-				if person.ID != tc.people[i].ID {
-					t.Errorf("Person ID not equal: got %v, want %v", person.ID, tc.people[i].ID)
+			for i, id := range people {
+				if id != tc.people[i] {
+					t.Errorf("Person ID not equal: got %v, want %v", id, tc.people[i])
 				}
 			}
 		})
