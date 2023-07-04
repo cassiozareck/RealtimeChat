@@ -19,7 +19,12 @@ services:
       - "8080:8080"
     depends_on:
       - postgres
-
+  gotest:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    depends_on:
+      - postgres
 
 volumes:
   postgres-db:

@@ -3,15 +3,40 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/cassiozareck/realchat/chat"
+	"github.com/cassiozareck/realchat/db"
 	_ "github.com/lib/pq"
 	"log"
 )
 
 func main() {
-	connectToDB()
+	postgres := connectToDB()
+
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Fatal("Error closing DB")
+		}
+	}(postgres)
+
+	chatDB := db.NewChatDBImp(postgres)
+
+	talk, err := chat.GetChat(chatDB, uint32(1))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	messages := talk.GetMessages()
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, msg := range messages {
+		fmt.Println(msg)
+	}
 }
 
-func connectToDB() {
+func connectToDB() *sql.DB {
 
 	// Database connection parameters
 	dbHost := "postgres" // aqui tem que ser o nome da task
@@ -29,18 +54,11 @@ func connectToDB() {
 		log.Fatal("Fail")
 	}
 
-	defer func(db *sql.DB) {
-		err := db.Close()
-		if err != nil {
-			log.Fatal("Error closing DB")
-		}
-	}(db)
-
 	err = db.Ping()
 	if err != nil {
 		log.Fatal("Failed to ping database:", err)
 	}
 
 	log.Println("Connected")
-
+	return db
 }
