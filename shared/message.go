@@ -13,31 +13,31 @@ type Message struct {
 	timestamp time.Time
 }
 
-func NewMessage(senderID uint32, text string) (*Message, error) {
+func NewMessage(senderID uint32, text string) (Message, error) {
 	err := checkText(text)
 	if err != nil {
-		return nil, err
+		return Message{}, err
 	}
 	err = checkSenderID(senderID)
 	if err != nil {
-		return nil, err
+		return Message{}, err
 	}
 
-	return &Message{
+	return Message{
 		senderID:  senderID,
 		text:      text,
 		timestamp: time.Now(),
 	}, nil
 }
 
-func NewMessageFromDB(id uint32, chatID uint32, senderID uint32, text string, timestamp time.Time) (*Message, error) {
-	return &Message{
+func NewMessageFromDB(id uint32, chatID uint32, senderID uint32, text string, timestamp time.Time) Message {
+	return Message{
 		id:        id,
 		chatID:    chatID,
 		senderID:  senderID,
 		text:      text,
 		timestamp: timestamp,
-	}, nil
+	}
 }
 
 func (m *Message) ID() uint32 {

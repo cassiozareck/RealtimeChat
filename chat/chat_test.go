@@ -1,17 +1,18 @@
 package chat
 
 import (
-	"fmt"
 	"github.com/cassiozareck/realchat/db"
 	"github.com/cassiozareck/realchat/shared"
 	"testing"
 )
 
 type ChatDBMock struct {
-	chatId   uint32
-	exist    bool
-	messages []shared.Message
-	err      error
+	chatId           uint32
+	exist            bool
+	Messages         []shared.Message
+	err              error
+	storeErr         error
+	getMessagesError error
 }
 
 func (c *ChatDBMock) CreateChat() (uint32, error) {
@@ -23,55 +24,51 @@ func (c *ChatDBMock) ChatExists(chatID uint32) (bool, error) {
 }
 
 func (c *ChatDBMock) Store(msg shared.Message) error {
-	return c.err
+	c.Messages = append(c.Messages, msg)
+	return c.storeErr
 }
 
 func (c *ChatDBMock) GetMessages(chatID uint32) ([]shared.Message, error) {
-	return c.messages, c.err
+	return c.Messages, c.getMessagesError
 }
 
-// TestChat_SendMSG will send a message and test if the
+// TestChat will send a message and test if the
 // last message is giving the appropriate answer
-func TestChat_SendMSG(t *testing.T) {
-	text := "hello"
-	userID := uint32(2)
-	otherID := uint32(3)
+func TestChat(t *testing.T) {
+
+	message1, _ := shared.NewMessage(123, "Hi")
+	message2, _ := shared.NewMessage(321, "Goodbye!")
+
 	var testCases = []struct {
 		// Input
-		name    string
-		message string
-		chatDB  db.ChatDB
-		userID  uint32
+		name     string
+		messages []shared.Message
+		chatDB   db.ChatDB
+
 		// Output
 		outMessages []shared.Message
+		outPeople   []uint32
 		err         error
 	}{
 		{
-			name:    "Test 1",
-			message: text,
-			chatDB: &ChatDBMock{
-				chatId:   0,
-				exist:    true,
-				messages: []shared.Message{shared.NewMessage(userID, text)},
-				err:      nil,
-			},
-			userID:      userID,
-			outMessages: []shared.Message{shared.NewMessage(userID, text)},
+			name:     "Test 1",
+			messages: []shared.Message{message1, message2},
+			chatDB:   &ChatDBMock{},
+
+			outMessages: []shared.Message{message1, message2},
+			outPeople:   []uint32{123, 321},
 			err:         nil,
 		},
 		{
-			name:    "Test 2",
-			message: text,
-			userID:  otherID,
+			name:     "Test 2",
+			messages: []shared.Message{message2},
 			chatDB: &ChatDBMock{
-				chatId: 0,
-				exist:  true,
-				messages: []shared.Message{shared.NewMessage(userID, text),
-					shared.NewMessage(otherID, text)},
-				err: nil,
+				Messages: []shared.Message{message1},
 			},
-			outMessages: []shared.Message{shared.NewMessage(userID, text),
-				shared.NewMessage(otherID, text)},
+
+			outMessages: []shared.Message{message1, message2},
+			outPeople:   []uint32{123, 321},
+			err:         nil,
 		},
 	}
 	for _, tc := range testCases {
@@ -80,13 +77,15 @@ func TestChat_SendMSG(t *testing.T) {
 			if err != nil {
 				t.Fatal("Error while creating new chat: ", err)
 			}
-			msg := shared.NewMessage(tc.userID, tc.message)
-			err = c.SendMessage(msg)
-			if err != nil {
-				t.Fatal("Error while sending message: ", err)
-			}
-			err = c.UpdateMessages()
 
+			for _, msg := range tc.messages {
+				err = c.SendMessage(msg)
+				if err != nil {
+					t.Fatal("Error while sending message: ", err)
+				}
+			}
+
+			err = c.UpdateMessages()
 			if err != nil {
 				t.Fatal("Error while updating messages: ", err)
 			}
@@ -94,93 +93,23 @@ func TestChat_SendMSG(t *testing.T) {
 			chatMessages := c.GetMessages()
 
 			for i, msg := range tc.outMessages {
-				if msg.Text != chatMessages[i].Text {
-					t.Fatal("Message not matching")
+				if msg != chatMessages[i] {
+					t.Fatalf("Expected %v, got %v", msg, chatMessages[i])
 				}
 			}
 
-		})
-	}
-}
-
-// TestChat_GetMessages will get messages using Chat and compare to see if
-// messages are matching the same from database
-func TestChat_GetMessages(t *testing.T) {
-	chatID := uint32(2)
-	testCases := []struct {
-		// Input
-		name   string
-		chatDB ChatDBMock
-		chatID uint32
-		// Output
-		messages []shared.Message
-		err      error
-	}{
-		{
-			// Input
-			name:   "Test1",
-			chatID: chatID,
-			chatDB: ChatDBMock{
-				exist: true,
-				messages: []shared.Message{
-					shared.NewMessage(321, "hello"),
-					shared.NewMessage(321, "how are u?"),
-					shared.NewMessage(123, "im fine thanks"),
-				},
-				err: nil,
-			},
-
-			// Output
-			err: error(nil),
-			messages: []shared.Message{
-				shared.NewMessage(321, "hello"),
-				shared.NewMessage(321, "how are u?"),
-				shared.NewMessage(123, "im fine thanks"),
-			},
-		},
-		{
-			// Input
-			name:   "Test2",
-			chatID: chatID,
-			chatDB: ChatDBMock{
-				exist:    false,
-				messages: nil,
-				err:      nil,
-			},
-
-			// Output
-			messages: nil,
-			err:      fmt.Errorf("chat with id %v does not exist", chatID)},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-
-			c, err := GetChat(&tc.chatDB, tc.chatID)
-
+			err = c.UpdatePeople()
 			if err != nil {
-				if err.Error() != tc.err.Error() {
-					t.Errorf("Error while creating new chat: %v", err)
-				} else {
-					if c == nil {
-						return
-					}
+				t.Fatal("Error while updating people: ", err)
+			}
+
+			chatPeople := c.GetPeople()
+			for i, person := range tc.outPeople {
+				if person != chatPeople[i] {
+					t.Fatalf("Expected %v, got %v", person, chatPeople[i])
 				}
 			}
 
-			messages := c.GetMessages()
-			if err != nil {
-				t.Errorf("Could not get messages: %v", err)
-			}
-
-			for i, msg := range messages {
-				if msg.Text != tc.messages[i].Text {
-					t.Errorf("Message text not equal: got %v, want %v", msg.Text, tc.messages[i].Text)
-				}
-				if msg.UserID != tc.messages[i].UserID {
-					t.Errorf("Message UserID not equal: got %v, want %v", msg.UserID, tc.messages[i].UserID)
-				}
-			}
 		})
 	}
 }
@@ -195,92 +124,35 @@ func TestChat_Exist(t *testing.T) {
 	}
 }
 
-func TestChat_GetPeople(t *testing.T) {
-	personID1 := uint32(1)
-	personID2 := uint32(2)
-	personID3 := uint32(3)
-
-	testCases := []struct {
+func TestChat_WithError(t *testing.T) {
+	var testCases = []struct {
 		// Input
-		name          string
-		chatDB        ChatDBMock
-		chatID        uint32
-		messageToSend shared.Message
+		name   string
+		chatDB db.ChatDB
+
 		// Output
-		people []uint32
-		err    error
+		err error
 	}{
 		{
-			// Input
-			name:   "Test1",
-			chatID: 0,
-			chatDB: ChatDBMock{
-				exist: true,
-				messages: []shared.Message{
-					shared.NewMessage(personID1, "hello"),
-					shared.NewMessage(personID1, "how are u?"),
-					shared.NewMessage(personID2, "im fine thanks"),
-				},
-				err: nil,
+			name: "Test 1",
+			chatDB: &ChatDBMock{
+				storeErr: error(nil),
 			},
-
-			// Output
 			err: error(nil),
-			people: []uint32{
-				personID1,
-				personID2,
-			},
 		},
 		{
-			// Input
-			name:   "Test2",
-			chatID: 0,
-			chatDB: ChatDBMock{
-				exist: true,
-				messages: []shared.Message{
-					shared.NewMessage(personID1, "hello"),
-					shared.NewMessage(personID1, "how are u?"),
-					shared.NewMessage(personID2, "im fine thanks"),
-				},
-				err: nil,
+			name: "Test 2",
+			chatDB: &ChatDBMock{
+				getMessagesError: error(nil),
 			},
-			messageToSend: shared.NewMessage(personID3, "hello"),
-
-			// Output
 			err: error(nil),
-			people: []uint32{
-				personID1,
-				personID2,
-				personID3,
-			},
 		},
 	}
-
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-
-			c, err := GetChat(&tc.chatDB, tc.chatID)
-
-			if err != nil {
-				t.Errorf("Error while creating new chat: %v", err)
-			}
-
-			if tc.messageToSend.Text != "" {
-				err := c.SendMessage(tc.messageToSend)
-				if err != nil {
-					t.Errorf("Error while sending message: %v", err)
-				}
-			}
-
-			people := c.GetPeople()
-			if err != nil {
-				t.Errorf("Could not get people: %v", err)
-			}
-
-			for i, id := range people {
-				if id != tc.people[i] {
-					t.Errorf("Person ID not equal: got %v, want %v", id, tc.people[i])
-				}
+			_, err := NewChat(tc.chatDB)
+			if err != tc.err {
+				t.Fatalf("Expected %v, got %v", tc.err, err)
 			}
 		})
 	}

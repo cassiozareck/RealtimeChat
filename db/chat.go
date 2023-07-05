@@ -100,6 +100,6 @@ func (c *ChatDBImp) scanMessage(rows *sql.Rows) (*shared.Message, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	return shared.NewMessageFromDB(id, senderID, chatID, text, t)
+	message := shared.NewMessageFromDB(id, senderID, chatID, text, t)
+	return &message, nil
 }
