@@ -1,0 +1,21 @@
+# Start from the same base image
+FROM golang:1.19 AS builder
+
+# Set the working directory
+WORKDIR /app
+
+# Copy go mod and sum files
+COPY go.mod go.sum ./
+
+# Download all dependencies
+RUN go mod download
+
+# Build Delve
+RUN go install github.com/go-delve/delve/cmd/dlv@latest
+
+# Copy the source from the current directory to the working directory inside the container
+COPY . .
+
+RUN go build -gcflags "all=-N -l" -o /realchat
+
+CMD ["dlv", "--listen=:2345", "--headless=true", "--api-version=2", "--accept-multiclient", "exec", "/realchat"]

@@ -4,14 +4,19 @@ services:
     container_name: postgres
     image: postgres:alpine
     environment:
-      POSTGRES_USER: cassio
-      POSTGRES_PASSWORD: 123123
-      POSTGRES_DB: realchat
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres-db:/var/lib/postgresql/data
     ports:
       - "5432:5432"
   goapp:
+    environment:
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     build:
       context: .
       dockerfile: Dockerfile
@@ -20,11 +25,34 @@ services:
     depends_on:
       - postgres
   gotest:
+    environment:
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     build:
       context: .
       dockerfile: Dockerfile.test
     depends_on:
       - postgres
+  godebug:
+    ports:
+      - "2345:2345"
+    environment:
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    security_opt:
+      - apparmor:unconfined
+    cap_add:
+      - SYS_PTRACE
+    build:
+      context: .
+      dockerfile: Dockerfile.debug
+    depends_on:
+      - postgres
+
 
 volumes:
   postgres-db:
