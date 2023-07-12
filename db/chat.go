@@ -44,8 +44,8 @@ func (c *ChatDBImp) ChatExists(chatID uint32) (bool, error) {
 
 // Store will store a message in the database
 func (c *ChatDBImp) Store(msg shared.Message) error {
-	_, err := c.sql.Exec("INSERT INTO message (sender_id, message, time, chat_id) VALUES (?, ?, ?, ?)",
-		msg.SenderID(), msg.Text, msg.Timestamp(), msg.ChatID())
+	_, err := c.sql.Exec("INSERT INTO message (sender_id, message, time, chat_id) VALUES ($1, $2, $3, $4)",
+		msg.SenderID(), msg.Text(), msg.Timestamp(), msg.ChatID())
 	if err != nil {
 		return err
 	}
@@ -92,7 +92,7 @@ func (c *ChatDBImp) scanMessages(rows *sql.Rows) ([]shared.Message, error) {
 func (c *ChatDBImp) scanMessage(rows *sql.Rows) (*shared.Message, error) {
 	var id, senderID, chatID uint32
 	var text, timestamp string
-	if err := rows.Scan(&id, &senderID, &text, &timestamp, &chatID); err != nil {
+	if err := rows.Scan(&id, &chatID, &text, &timestamp, &senderID); err != nil {
 		return nil, err
 	}
 

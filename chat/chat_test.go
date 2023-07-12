@@ -36,8 +36,8 @@ func (c *ChatDBMock) GetMessages(chatID uint32) ([]shared.Message, error) {
 // last message is giving the appropriate answer
 func TestChat(t *testing.T) {
 
-	message1, _ := shared.NewMessage(123, "Hi")
-	message2, _ := shared.NewMessage(321, "Goodbye!")
+	message1, _ := shared.NewMessage(123, 12, "Hi")
+	message2, _ := shared.NewMessage(321, 12, "Goodbye!")
 
 	var testCases = []struct {
 		// Input

@@ -35,7 +35,7 @@ func setup() {
 
 func TestChat_SendMessage(t *testing.T) {
 	// Create a message
-	message, err := shared.NewMessage(1, "Hello")
+	message, err := shared.NewMessage(1, chat.id, "Hello")
 	if err != nil {
 		t.Error("Failed to create message:", err)
 	}

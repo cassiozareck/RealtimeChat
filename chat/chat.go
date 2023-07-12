@@ -55,6 +55,7 @@ func NewChat(chatDB db.ChatDB) (*Chat, error) {
 }
 
 func (c *Chat) SendMessage(message shared.Message) error {
+
 	err := c.chatDB.Store(message)
 
 	if err != nil {

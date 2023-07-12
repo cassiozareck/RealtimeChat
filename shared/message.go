@@ -6,14 +6,14 @@ import (
 )
 
 type Message struct {
-	id        uint32
+	_id       uint32
 	chatID    uint32
 	senderID  uint32
 	text      string
 	timestamp time.Time
 }
 
-func NewMessage(senderID uint32, text string) (Message, error) {
+func NewMessage(senderID uint32, chatID uint32, text string) (Message, error) {
 	err := checkText(text)
 	if err != nil {
 		return Message{}, err
@@ -25,6 +25,7 @@ func NewMessage(senderID uint32, text string) (Message, error) {
 
 	return Message{
 		senderID:  senderID,
+		chatID:    chatID,
 		text:      text,
 		timestamp: time.Now(),
 	}, nil
@@ -32,7 +33,7 @@ func NewMessage(senderID uint32, text string) (Message, error) {
 
 func NewMessageFromDB(id uint32, chatID uint32, senderID uint32, text string, timestamp time.Time) Message {
 	return Message{
-		id:        id,
+		_id:       id,
 		chatID:    chatID,
 		senderID:  senderID,
 		text:      text,
@@ -41,11 +42,19 @@ func NewMessageFromDB(id uint32, chatID uint32, senderID uint32, text string, ti
 }
 
 func (m *Message) ID() uint32 {
-	return m.id
+	return m._id
 }
 
 func (m *Message) ChatID() uint32 {
 	return m.chatID
+}
+
+func (m *Message) SetChatID(chatID uint32) error {
+	if chatID <= 0 {
+		return fmt.Errorf("invalid chat id: %d", chatID)
+	}
+	m.chatID = chatID
+	return nil
 }
 
 func (m *Message) SenderID() uint32 {
