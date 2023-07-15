@@ -74,7 +74,7 @@ func (m *Message) SetText(text string) error {
 
 func checkText(text string) error {
 	if len(text) == 0 {
-		return fmt.Errorf("invalid message: %s", text)
+		return fmt.Errorf("empty message")
 	}
 	if len(text) > MAX_MESSAGE_SIZE {
 		return fmt.Errorf("message too long: %s", text)

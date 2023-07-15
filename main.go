@@ -124,14 +124,14 @@ func SendMessage(w http.ResponseWriter, r *http.Request) {
 
 	c, err := chat.GetChat(db.NewChatDBImp(conn), incomingMessage.ChatID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Error getting chat: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	err = c.SendMessage(incomingMessage)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Error sending message: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
