@@ -36,13 +36,13 @@ func (c *ChatDBMock) GetMessages(chatID uint32) ([]shared.Message, error) {
 // last message is giving the appropriate answer
 func TestChat(t *testing.T) {
 
-	message1, _ := shared.NewMessage(123, 12, "Hi")
-	message2, _ := shared.NewMessage(321, 12, "Goodbye!")
+	message1 := shared.IncomingMessage{ChatID: 123, SenderID: 12, Text: "Hi"}
+	message2 := shared.IncomingMessage{ChatID: 123, SenderID: 15, Text: "Goodbye!"}
 
 	var testCases = []struct {
 		// Input
 		name     string
-		messages []shared.Message
+		messages []shared.IncomingMessage
 		chatDB   db.ChatDB
 
 		// Output
@@ -52,23 +52,47 @@ func TestChat(t *testing.T) {
 	}{
 		{
 			name:     "Test 1",
-			messages: []shared.Message{message1, message2},
+			messages: []shared.IncomingMessage{message1, message2},
 			chatDB:   &ChatDBMock{},
 
-			outMessages: []shared.Message{message1, message2},
-			outPeople:   []uint32{123, 321},
-			err:         nil,
+			outMessages: []shared.Message{{
+				ID:       0,
+				SenderID: message1.SenderID,
+				ChatID:   message1.ChatID,
+				Text:     message1.Text,
+			}, {
+				ID:       0,
+				SenderID: message2.SenderID,
+				ChatID:   message2.ChatID,
+				Text:     message2.Text,
+			}},
+			outPeople: []uint32{12, 15},
+			err:       nil,
 		},
 		{
 			name:     "Test 2",
-			messages: []shared.Message{message2},
+			messages: []shared.IncomingMessage{message2},
 			chatDB: &ChatDBMock{
-				Messages: []shared.Message{message1},
-			},
-
-			outMessages: []shared.Message{message1, message2},
-			outPeople:   []uint32{123, 321},
-			err:         nil,
+				Messages: []shared.Message{{
+					ID:       0,
+					SenderID: message1.SenderID,
+					ChatID:   message1.ChatID,
+					Text:     message1.Text,
+				},
+				}},
+			outMessages: []shared.Message{{
+				ID:       0,
+				SenderID: message1.SenderID,
+				ChatID:   message1.ChatID,
+				Text:     message1.Text,
+			}, {
+				ID:       0,
+				SenderID: message2.SenderID,
+				ChatID:   message2.ChatID,
+				Text:     message2.Text,
+			}},
+			outPeople: []uint32{message1.SenderID, message2.SenderID},
+			err:       nil,
 		},
 	}
 	for _, tc := range testCases {
@@ -85,25 +109,25 @@ func TestChat(t *testing.T) {
 				}
 			}
 
-			err = c.UpdateMessages()
+			chatMessages, err := c.GetMessages()
 			if err != nil {
-				t.Fatal("Error while updating messages: ", err)
+				t.Fatal("Error while getting messages: ", err)
 			}
 
-			chatMessages := c.GetMessages()
-
+			// We don't check time because it is not set
 			for i, msg := range tc.outMessages {
-				if msg != chatMessages[i] {
+				if msg.ID != chatMessages[i].ID ||
+					msg.ChatID != chatMessages[i].ChatID ||
+					msg.SenderID != chatMessages[i].SenderID ||
+					msg.Text != chatMessages[i].Text {
 					t.Fatalf("Expected %v, got %v", msg, chatMessages[i])
 				}
 			}
 
-			err = c.UpdatePeople()
+			chatPeople, err := c.GetPeople()
 			if err != nil {
-				t.Fatal("Error while updating people: ", err)
+				t.Fatal("Error while getting people: ", err)
 			}
-
-			chatPeople := c.GetPeople()
 			for i, person := range tc.outPeople {
 				if person != chatPeople[i] {
 					t.Fatalf("Expected %v, got %v", person, chatPeople[i])

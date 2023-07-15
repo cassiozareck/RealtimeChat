@@ -33,3 +33,12 @@ func ConnectToDB() *sql.DB {
 	log.Println("Connected")
 	return db
 }
+
+func Contains(slice []uint32, val uint32) bool {
+	for _, item := range slice {
+		if item == val {
+			return true
+		}
+	}
+	return false
+}

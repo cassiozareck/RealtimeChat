@@ -6,6 +6,7 @@ import (
 	"github.com/cassiozareck/realchat/shared"
 	"log"
 	"os"
+	"strconv"
 	"testing"
 )
 
@@ -35,7 +36,7 @@ func setup() {
 
 func TestChat_SendMessage(t *testing.T) {
 	// Create a message
-	message, err := shared.NewMessage(1, chat.id, "Hello")
+	message, err := shared.NewIncomingMessage(1, chat.id, "Hello")
 	if err != nil {
 		t.Error("Failed to create message:", err)
 	}
@@ -49,20 +50,22 @@ func TestChat_SendMessage(t *testing.T) {
 	// Check if the message was saved in the database
 	// Get the message from the database
 	// Check if the message is the same as the one we created
-	err = chat.UpdateMessages()
+	messages, err := chat.GetMessages()
 	if err != nil {
-		t.Error("Failed to update messages:", err)
+		t.Error("Failed to get messages:", err)
 	}
 
-	messages := chat.GetMessages()
-	if messages[0].Text() != "Hello" || messages[0].SenderID() != 1 {
-		t.Error("Message not saved in the database or not retrieved correctly")
+	if messages[0].Text != "Hello" || messages[0].SenderID != 1 {
+		t.Error("Message not saved in the database or not retrieved correctly: " +
+			messages[0].Text + " " + strconv.Itoa(int(messages[0].SenderID)))
 	}
 }
 
 func shutdown() {
+
 	err := conn.Close()
 	if err != nil {
 		log.Fatal("Failed to close connection:", err)
 	}
+
 }

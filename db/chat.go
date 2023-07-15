@@ -45,7 +45,10 @@ func (c *ChatDBImp) ChatExists(chatID uint32) (bool, error) {
 // Store will store a message in the database
 func (c *ChatDBImp) Store(msg shared.Message) error {
 	_, err := c.sql.Exec("INSERT INTO message (sender_id, message, time, chat_id) VALUES ($1, $2, $3, $4)",
-		msg.SenderID(), msg.Text(), msg.Timestamp(), msg.ChatID())
+		msg.SenderID, msg.Text, msg.Timestamp, msg.ChatID)
+	if shared.LOG {
+		log.Printf("Stored message: %v", msg)
+	}
 	if err != nil {
 		return err
 	}
@@ -65,7 +68,7 @@ func (c *ChatDBImp) GetMessages(chatID uint32) ([]shared.Message, error) {
 
 // queryMessages performs the SQL query to get messages for a chat.
 func (c *ChatDBImp) queryMessages(chatID uint32) (*sql.Rows, error) {
-	return c.sql.Query("SELECT id, sender_id, message.message, time, chat_id FROM message WHERE chat_id = $1", chatID)
+	return c.sql.Query("SELECT id, message.message,  time, chat_id, sender_id FROM message WHERE chat_id = $1", chatID)
 }
 
 // closeRows closes the SQL rows and logs any error.
@@ -92,7 +95,7 @@ func (c *ChatDBImp) scanMessages(rows *sql.Rows) ([]shared.Message, error) {
 func (c *ChatDBImp) scanMessage(rows *sql.Rows) (*shared.Message, error) {
 	var id, senderID, chatID uint32
 	var text, timestamp string
-	if err := rows.Scan(&id, &chatID, &text, &timestamp, &senderID); err != nil {
+	if err := rows.Scan(&id, &text, &timestamp, &chatID, &senderID); err != nil {
 		return nil, err
 	}
 
@@ -100,6 +103,11 @@ func (c *ChatDBImp) scanMessage(rows *sql.Rows) (*shared.Message, error) {
 	if err != nil {
 		return nil, err
 	}
-	message := shared.NewMessageFromDB(id, senderID, chatID, text, t)
+	message := shared.Message{ID: id, SenderID: senderID, ChatID: chatID, Text: text, Timestamp: t}
+
+	if shared.LOG {
+		log.Printf("Scanned message: %v", message)
+	}
+
 	return &message, nil
 }

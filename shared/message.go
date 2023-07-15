@@ -5,12 +5,19 @@ import (
 	"time"
 )
 
+// IncomingMessage Messages coming from client to server
+type IncomingMessage struct {
+	ChatID   uint32 `json:"chat_id"`
+	SenderID uint32 `json:"sender_id"`
+	Text     string `json:"text"`
+}
+
 type Message struct {
-	_id       uint32
-	chatID    uint32
-	senderID  uint32
-	text      string
-	timestamp time.Time
+	ID        uint32    `json:"id"`
+	Text      string    `json:"text"`
+	Timestamp time.Time `json:"timestamp"`
+	ChatID    uint32    `json:"chat_id"`
+	SenderID  uint32    `json:"sender_id"`
 }
 
 func NewMessage(senderID uint32, chatID uint32, text string) (Message, error) {
@@ -24,49 +31,36 @@ func NewMessage(senderID uint32, chatID uint32, text string) (Message, error) {
 	}
 
 	return Message{
-		senderID:  senderID,
-		chatID:    chatID,
-		text:      text,
-		timestamp: time.Now(),
+		SenderID:  senderID,
+		ChatID:    chatID,
+		Text:      text,
+		Timestamp: time.Now(),
 	}, nil
 }
 
-func NewMessageFromDB(id uint32, chatID uint32, senderID uint32, text string, timestamp time.Time) Message {
-	return Message{
-		_id:       id,
-		chatID:    chatID,
-		senderID:  senderID,
-		text:      text,
-		timestamp: timestamp,
+func NewIncomingMessage(senderID uint32, chatID uint32, text string) (IncomingMessage, error) {
+	err := checkText(text)
+	if err != nil {
+		return IncomingMessage{}, err
 	}
-}
+	err = checkSenderID(senderID)
+	if err != nil {
+		return IncomingMessage{}, err
+	}
 
-func (m *Message) ID() uint32 {
-	return m._id
-}
-
-func (m *Message) ChatID() uint32 {
-	return m.chatID
+	return IncomingMessage{
+		SenderID: senderID,
+		ChatID:   chatID,
+		Text:     text,
+	}, nil
 }
 
 func (m *Message) SetChatID(chatID uint32) error {
 	if chatID <= 0 {
 		return fmt.Errorf("invalid chat id: %d", chatID)
 	}
-	m.chatID = chatID
+	m.ChatID = chatID
 	return nil
-}
-
-func (m *Message) SenderID() uint32 {
-	return m.senderID
-}
-
-func (m *Message) Text() string {
-	return m.text
-}
-
-func (m *Message) Timestamp() time.Time {
-	return m.timestamp
 }
 
 func (m *Message) SetText(text string) error {
@@ -74,7 +68,7 @@ func (m *Message) SetText(text string) error {
 	if err != nil {
 		return err
 	}
-	m.text = text
+	m.Text = text
 	return nil
 }
 
