@@ -1,0 +1,211 @@
+GET http://localhost:8080/new
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.7)
+Accept-Encoding: br,deflate,gzip,x-gzip
+
+<> 2023-07-17T121032.200.txt
+
+###
+
+GET http://localhost:8080/chat?id=1
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.7)
+Accept-Encoding: br,deflate,gzip,x-gzip
+
+<> 2023-07-17T121029.200.json
+
+###
+
+POST http://localhost:8080/send
+Content-Type: application/json
+Content-Length: 60
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.7)
+Accept-Encoding: br,deflate,gzip,x-gzip
+
+{
+  "chat_id": 1,
+  "sender_id": 1,
+  "text": "Hello Chat"
+}
+
+<> 2023-07-17T120944.200.txt
+
+###
+
+GET http://localhost:8080/new
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.7)
+Accept-Encoding: br,deflate,gzip,x-gzip
+
+<> 2023-07-17T120938.404.txt
+
+###
+
+GET http://localhost:8080/chat?id=1
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.7)
+Accept-Encoding: br,deflate,gzip,x-gzip
+
+<> 2023-07-17T120919.200.json
+
+###
+
+GET http://localhost:8080/new
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.7)
+Accept-Encoding: br,deflate,gzip,x-gzip
+
+<> 2023-07-17T120834.404.txt
+
+###
+
+GET http://localhost:8080/new
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.7)
+Accept-Encoding: br,deflate,gzip,x-gzip
+
+<> 2023-07-15T181532.200.txt
+
+###
+
+GET http://localhost:8080/chat?id=1
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.7)
+Accept-Encoding: br,deflate,gzip,x-gzip
+
+<> 2023-07-15T181422.200.txt
+
+###
+
+POST http://localhost:8080/send
+Content-Type: application/json
+Content-Length: 60
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.7)
+Accept-Encoding: br,deflate,gzip,x-gzip
+
+{
+  "chat_id": 1,
+  "sender_id": 1,
+  "text": "Hello Chat"
+}
+
+<> 2023-07-15T181128.200.txt
+
+###
+
+POST http://localhost:8080/send
+Content-Type: application/json
+Content-Length: 63
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.7)
+Accept-Encoding: br,deflate,gzip,x-gzip
+
+{
+  "chat_id": 1,
+  "sender_id": 1,
+  "message": "Hello Chat"
+}
+
+<> 2023-07-15T180947.500.txt
+
+###
+
+POST http://localhost:8080/send
+Content-Type: application/json
+Content-Length: 63
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.7)
+Accept-Encoding: br,deflate,gzip,x-gzip
+
+{
+  "chat_id": 1,
+  "sender_id": 1,
+  "message": "Hello Chat"
+}
+
+<> 2023-07-15T180605.500.txt
+
+###
+
+POST http://localhost:8080/send
+Content-Type: application/json
+Content-Length: 63
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.7)
+Accept-Encoding: br,deflate,gzip,x-gzip
+
+{
+  "chat_id": 1,
+  "sender_id": 1,
+  "message": "Hello Chat"
+}
+
+<> 2023-07-15T170719.500.txt
+
+###
+
+GET http://localhost:8080/chat?id=1
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.7)
+Accept-Encoding: br,deflate,gzip,x-gzip
+
+<> 2023-07-12T232253.200.txt
+
+###
+
+GET http://localhost:8080/chat?id=1
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.7)
+Accept-Encoding: br,deflate,gzip,x-gzip
+
+<> 2023-07-12T224250.200.txt
+
+###
+
+GET http://localhost:8080/chat?id={123}
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.7)
+Accept-Encoding: br,deflate,gzip,x-gzip
+
+<> 2023-07-12T224233.500.txt
+
+###
+
+GET http://localhost:8080/chat?id=1
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.7)
+Accept-Encoding: br,deflate,gzip,x-gzip
+
+<> 2023-07-12T223613.200.txt
+
+###
+
+GET http://localhost:8080/chat?id=1
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.7)
+Accept-Encoding: br,deflate,gzip,x-gzip
+
+<> 2023-07-12T223330.200.txt
+
+###
+
+GET http://localhost:8080/chat?id=1
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.7)
+Accept-Encoding: br,deflate,gzip,x-gzip
+
+<> 2023-07-12T223225.200.txt
+
+###
+
+GET http://localhost:8080/chat?id=123
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.7)
+Accept-Encoding: br,deflate,gzip,x-gzip
+
+<> 2023-07-12T163856.200.txt
+
+###
+

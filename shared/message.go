@@ -55,23 +55,6 @@ func NewIncomingMessage(senderID uint32, chatID uint32, text string) (IncomingMe
 	}, nil
 }
 
-func (m *Message) SetChatID(chatID uint32) error {
-	if chatID <= 0 {
-		return fmt.Errorf("invalid chat id: %d", chatID)
-	}
-	m.ChatID = chatID
-	return nil
-}
-
-func (m *Message) SetText(text string) error {
-	err := checkText(text)
-	if err != nil {
-		return err
-	}
-	m.Text = text
-	return nil
-}
-
 func checkText(text string) error {
 	if len(text) == 0 {
 		return fmt.Errorf("empty message")
