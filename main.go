@@ -33,6 +33,16 @@ func main() {
 	log.Fatal(router.Run(":8080"))
 }
 
+// GetChat is an endpoint that will retrieve messages from a given chat 
+// id. It's response is a list of messages in json format with these spec:
+//
+// type Message struct {
+//	ID        uint32    `json:"id"`
+//	Text      string    `json:"text"`
+//	Timestamp time.Time `json:"timestamp"`
+//	ChatID    uint32    `json:"chat_id"`
+//	SenderID  uint32    `json:"sender_id"`
+// }
 func GetChat(c *gin.Context) {
 	id := c.Query("id")
 

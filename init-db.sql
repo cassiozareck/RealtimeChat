@@ -1,0 +1,14 @@
+-- SQL script to create the necessary tables for RealChat API
+
+CREATE TABLE IF NOT EXISTS chat (
+    id SERIAL PRIMARY KEY,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS message (
+    id SERIAL PRIMARY KEY,
+    chat_id INTEGER REFERENCES chat(id),
+    sender_id INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);

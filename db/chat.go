@@ -44,7 +44,7 @@ func (c *ChatDBImp) ChatExists(chatID uint32) (bool, error) {
 
 // Store will store a message in the database
 func (c *ChatDBImp) Store(msg shared.Message) error {
-	_, err := c.sql.Exec("INSERT INTO message (sender_id, message, time, chat_id) VALUES ($1, $2, $3, $4)",
+	_, err := c.sql.Exec("INSERT INTO message (sender_id, text, timestamp, chat_id) VALUES ($1, $2, $3, $4)",
 		msg.SenderID, msg.Text, msg.Timestamp, msg.ChatID)
 	if shared.LOG {
 		log.Printf("Stored message: %v", msg)
@@ -68,7 +68,7 @@ func (c *ChatDBImp) GetMessages(chatID uint32) ([]shared.Message, error) {
 
 // queryMessages performs the SQL query to get messages for a chat.
 func (c *ChatDBImp) queryMessages(chatID uint32) (*sql.Rows, error) {
-	return c.sql.Query("SELECT id, message.message,  time, chat_id, sender_id FROM message WHERE chat_id = $1", chatID)
+	return c.sql.Query("SELECT id, message.text,  timestamp, chat_id, sender_id FROM message WHERE chat_id = $1", chatID)
 }
 
 // closeRows closes the SQL rows and logs any error.
