@@ -1,7 +1,7 @@
-# RealChat API
+# Little chat API
 
 ## Overview
-RealChat API is a simple chat service that allows users to create chat sessions, send messages, and retrieve messages from a chat session. It is built using Go and the Gin web framework, and it uses a PostgreSQL database to store chat data.
+Little Chat API is a simple chat service that allows users to create chat sessions, send messages, and retrieve messages from a chat session. It is built using Go and the Gin web framework, and it uses a PostgreSQL database to store chat data.
 
 ## Features
 - Create new chat sessions
