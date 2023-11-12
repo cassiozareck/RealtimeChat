@@ -1,7 +1,7 @@
 # Little chat API
 
 ## Overview
-Little Chat API is a simple chat service that allows users to create chat sessions, send messages, and retrieve messages from a chat session. It is built using Go and the Gin web framework, and it uses a PostgreSQL database to store chat data.
+LittleChat API is a simple chat service that allows users to create chat sessions, send messages, and retrieve messages from a chat session. It is built using Go and the Gin web framework, and it uses a PostgreSQL database to store chat data.
 
 ## Features
 - Create new chat sessions
@@ -13,7 +13,7 @@ Little Chat API is a simple chat service that allows users to create chat sessio
 - Docker Compose
 
 ## Installation
-To set up the Little Chat API on your local machine using Docker, follow these steps:
+To set up the LittleChat on your local machine using Docker, follow these steps:
 
 1. Clone the repository to your local machine.
 2. Navigate to the directory containing the `docker-compose.yml` file.
@@ -37,7 +37,7 @@ Once the server is running, you can interact with the API using the following en
   ```
 
 ## Contributing
-Contributions to the RealChat API are welcome. Please feel free to fork the repository, make changes, and submit a pull request.
+Contributions to the LittleChat API are welcome. Please feel free to fork the repository, make changes, and submit a pull request.
 
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.
