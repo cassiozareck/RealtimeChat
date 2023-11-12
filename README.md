@@ -13,7 +13,7 @@ Little Chat API is a simple chat service that allows users to create chat sessio
 - Docker Compose
 
 ## Installation
-To set up the RealChat API on your local machine using Docker, follow these steps:
+To set up the Little Chat API on your local machine using Docker, follow these steps:
 
 1. Clone the repository to your local machine.
 2. Navigate to the directory containing the `docker-compose.yml` file.
